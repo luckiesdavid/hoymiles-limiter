@@ -4,8 +4,7 @@ from requests.auth import HTTPBasicAuth
 import logging
 
 
-# Diese Daten müssen angepasst werden:
-serials = []  # Seriennummern werden ausgelesen
+serials = [] 
 rec_serials = False
 max_power = []
 rec_max_power = False
@@ -13,13 +12,13 @@ setpoint_factor = []
 rec_setpoint_factor = False
 old_limit = []
 rec_old_limit = False 
-maximum_wr = 3500  # Maximale Ausgabe des Wechselrichters
+#maximum_wr = 3500  # Maximale Ausgabe des Wechselrichters
 minimum_wr = 400  # Minimale Ausgabe des Wechselrichters
 offset_grid = -50
 
 dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
-dtu_nutzer = 'admin'  # OpenDTU Nutzername
-dtu_passwort = 'Hansdampf'  # OpenDTU Passwort
+dtu_nutzer = 'xxx'  # OpenDTU Nutzername
+dtu_passwort = 'xxx'  # OpenDTU Passwort
 
 shelly_ip = '192.168.178.93'  # IP Adresse von Shelly 3EM
 
@@ -152,9 +151,9 @@ if __name__ == '__main__':
                     setpoint = (grid_sum + power) - offset_grid# *-1
 
                     #  upper Limit 
-                    if setpoint > maximum_wr:
-                        setpoint = maximum_wr
-                        print(f'Setpoint auf Maximum: {maximum_wr} W')
+                    if setpoint > max_power_all:
+                        setpoint = max_power_all
+                        print(f'Setpoint auf Maximum: {max_power_all} W')
                     ## bottom Limit 
                     if setpoint < minimum_wr:
                         setpoint = minimum_wr
