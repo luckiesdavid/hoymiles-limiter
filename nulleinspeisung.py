@@ -66,7 +66,6 @@ def read_opendtu():
     # power_dc = r['inverters'][0]['AC']['0']['Power DC']['v'] # Lieferung DC vom Panel
     power = r['total']['Power']['v']  # Abgabe BKW AC in Watt
     print("...received opendDTU Data")
-    return reachable, producing, altes_limit, power, serials, rec_serials
 
 def read_maxpower():
     global max_power, rec_max_power
@@ -77,8 +76,6 @@ def read_maxpower():
         max_power.append(r[serials[i]]['max_power'])
         rec_max_power = True
 
-    return max_power, rec_max_power
-
 def inv_factor():
     global max_power_all, setpoint_factor, rec_setpoint_factor
     max_power_all = sum(max_power)
@@ -86,7 +83,6 @@ def inv_factor():
         setpoint_factor.append(max_power[i] / max_power_all)
     rec_setpoint_factor = True
     print(f"setpoint_factor: {setpoint_factor} ")
-    return max_power_all, setpoint_factor
 
 def read_shelly():
     global grid_sum
@@ -95,7 +91,6 @@ def read_shelly():
     phase_c = requests.get(f'http://{shelly_ip}/emeter/2', headers={'Content-Type': 'application/json'}).json()['power']
     grid_sum = phase_a + phase_b + phase_c 
     print("...received Shelly 3EM Data")
-    return grid_sum
 
 def set_limit():
     global setpoint
@@ -115,8 +110,6 @@ def set_limit():
         #print(f"gesendet{setpoint * setpoint_factor[i]}:")
     except Exception as e:
         print(f'Fehler beim Senden der Konfiguration: \n {e}')
-    return setpoint
-
 
 
 if __name__ == '__main__':
