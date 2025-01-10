@@ -2,7 +2,7 @@
 import requests, time, sys
 from requests.auth import HTTPBasicAuth
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 serials = []
@@ -13,6 +13,8 @@ setpoint_factor = []
 rec_setpoint_factor = False
 old_limit = []
 rec_old_limit = False
+power_each = []
+efficency = []
 # maximum_wr = 3500  # Maximale Ausgabe des Wechselrichters
 minimum_wr = 400  # Minimale Ausgabe des Wechselrichters
 offset_grid = -50
@@ -57,6 +59,7 @@ def read_opendtu():
                 rec_serials = True
             except:
                 print(f"Read {len(serials)} Inverter Serials ")
+                logging.info(f'Read {len(serials)} Serials at start with: {serials}')
                 break
     # read old_limit only once
     if rec_old_limit == False:
@@ -89,6 +92,23 @@ def read_maxpower():
         max_power.append(r[serials[i]]['max_power'])
         rec_max_power = True
 
+def read_efficency():
+    global efficency, serials, power_each, power
+    efficency = []
+    for i in range(len(serials)):
+        r = requests.get(url=f'http://{dtu_ip}/api/livedata/status?inv={serials[i]}').json() # http://192.168.178.203/api/livedata/status?inv=1164a00a99df
+        e = [inv['AC']['0']['Power']['v'] for inv in r["inverters"]]
+        ee = e[0] # list to string
+        #power_each.append(ee)
+        #power = 500
+        #ee = 100
+        if power == 0 or ee == 0:
+            efficency = [0.25, 0.25, 0.25, 0.25] # identical if reading not possible or 1 inverter = 0W
+        else:
+            eff = ee / power
+            efficency.append(eff)
+    print(f"current Efficency : {efficency}")
+
 
 def inv_factor():
     global max_power_all, setpoint_factor, rec_setpoint_factor
@@ -111,20 +131,21 @@ def read_shelly():
 def read_hichi():
     # 'http://10.0.1.130/cm?cmnd=Status%200'
     global grid_sum
-    grid_sum = requests.get(f'http://{hichi_ip}/cm?cmnd=Status%200', headers={'Content-Type': 'application/json'}).json()['StatusSNS']['Power_cur']
+    grid_sum = requests.get(f'http://{hichi_ip}/cm?cmnd=Status%200', headers={'Content-Type': 'application/json'}).json()['StatusSNS']['MT681']['Power_cur']
 
 
 def set_limit():
-    global setpoint
+    global setpoint, efficency
     print(f'Setze Inverterlimit von {round(altes_limit, 1)} W auf {round(setpoint, 1)} W... ')
     logging.info(f'Setze Inverterlimit von {round(altes_limit, 1)} W auf {round(setpoint, 1)} W... ')
     for i in range(len(serials)):
-        print(f"setpoint_all: {setpoint} setpoint_each: {setpoint * setpoint_factor[i]}")
+        print(f"setpoint_all: {setpoint} setpoint_each: {setpoint * efficency[i]}")
+        logging.debug(f"setpoint_all: {setpoint} setpoint_each: {setpoint * efficency[i]}")
     try:
         for i in range(len(serials)):
             r = requests.post(
                 url=f'http://{dtu_ip}/api/limit/config',
-                data=f'data={{"serial":"{serials[i]}", "limit_type":0, "limit_value":{setpoint * setpoint_factor[i]}}}',
+                data=f'data={{"serial":"{serials[i]}", "limit_type":0, "limit_value":{setpoint * efficency[i]}}}',
                 auth=HTTPBasicAuth(dtu_nutzer, dtu_passwort),
                 headers={'Content-Type': 'application/x-www-form-urlencoded'}
             )
@@ -147,6 +168,7 @@ if __name__ == '__main__':
             #read_hichi()
             if rec_setpoint_factor == False:
                 inv_factor()
+            read_efficency()
         except Exception as e:
             print(f'Fehler beim Abrufen der Daten {e}')
 
@@ -171,7 +193,7 @@ if __name__ == '__main__':
         print(f"Seriennummern: {serials} mit max_power: {max_power} ")
         print(
             f'\nBezug: {round(grid_sum, 1)} W, Produktion: {round(power, 1)} W, altes_Limit: {round(old_limit_all, 1)} W')
-        logging.info(f'Bezug: {round(grid_sum, 1)} W, Produktion: {round(power, 1)} W, altes_Limit: {round(old_limit_all, 1)} W')
+        logging.info(f'Bezug: {round(grid_sum, 1)} W,\t Produktion: {round(power, 1)} W,\t altes_Limit: {round(old_limit_all, 1)} W')
 
 
         if len(max_power) & len(serials) == 4:  # ATTENTION HARDCODED 4 INVERTERS!
