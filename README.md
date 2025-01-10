@@ -4,11 +4,11 @@
 Dies ist ein Python-Skript, das den aktuellen Hausverbrauch aus einem Shelly 3EM oder Hichi ausliest, die Nulleinspeisung berechnet und die Ausgangsleistung eines Hoymiles-Wechselrichters mit Hilfe der OpenDTU entsprechend anpasst. Somit wird kein unnötiger Strom ins Betreibernetz abgegeben.
 
 
-Autostart in VM/LXC:
-pv_limiter.service -> /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systèmctl enable pv_limiter.service
-sudo systèmctl start pv_limiter.service
+## Autostart in VM/LXC:
+- pv_limiter.service -> /etc/systemd/system/
+- sudo systemctl daemon-reload
+- sudo systemctl enable pv_limiter.service
+- sudo systemctl start pv_limiter.service
 
 
 ![diagramm](media/diagramm.jpg)
