@@ -1,0 +1,33 @@
+mqtt:
+# PV Limiter Python
+  - sensor:
+      name: "PV Limiter Py Power"
+      state_topic: "pv_limiter_py/"
+      unit_of_measurement: "W"
+      expire_after: 3700
+      value_template: "{{ value_json.power | round(1) }}"
+      qos: 1
+  - sensor:
+      name: "PV Limiter Py Grid"
+      state_topic: "pv_limiter_py/"
+      unit_of_measurement: "W"
+      value_template: "{{ value_json.grid | round(1) }}"
+      qos: 1
+  - sensor:
+      name: "PV Limiter Py Old Limit"
+      state_topic: "pv_limiter_py/"
+      unit_of_measurement: "W"
+      value_template: "{{ value_json.old_limit | round(1) }}"
+      qos: 1
+  - sensor:
+      name: "PV Limiter Py Setpoint"
+      state_topic: "pv_limiter_py/"
+      unit_of_measurement: "W"
+      value_template: "{{ value_json.setpoint | round(1) }}"
+      qos: 1
+  - sensor:
+      name: "PV Limiter Py Offset"
+      state_topic: "pv_limiter_py/"
+      unit_of_measurement: "W"
+      value_template: "{{ value_json.offset | round(1) }}"
+      qos: 1
