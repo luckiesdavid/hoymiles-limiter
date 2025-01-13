@@ -8,6 +8,7 @@ import os
 serials = []
 rec_serials = False
 max_power = []
+max_power_all = None
 rec_max_power = False
 setpoint_factor = []
 rec_setpoint_factor = False
@@ -15,9 +16,10 @@ old_limit = []
 rec_old_limit = False
 power_each = []
 efficency = []
+factor_efficency = []
 # maximum_wr = 3500  # Maximale Ausgabe des Wechselrichters
-minimum_wr = 400  # Minimale Ausgabe des Wechselrichters
-offset_grid = -50
+minimum_wr = 300  # Minimale Ausgabe des Wechselrichters
+offset_grid = -100
 
 dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
 dtu_nutzer = 'xxx'  # OpenDTU Nutzername
@@ -62,18 +64,19 @@ def read_opendtu():
                 logging.info(f'Read {len(serials)} Serials at start with: {serials}')
                 break
     # read old_limit only once
-    if rec_old_limit == False:
+    #if rec_old_limit == False:
         # Inverter Serials for up to 10 Inverters
-        for i in range(10):
-            try:
-                s = r['inverters'][i]['limit_absolute']  # Ist DTU erreichbar?
-                old_limit.append(s)
-                rec_old_limit = True
-            except:
-                print(f"Read {len(old_limit)} Inverter Limits ")
-                break
-        old_limit_all = sum(old_limit)  # sum all limits
-    # print(f"Read {old_limit} Inverter Limits ")
+    old_limit = []  # limits restore
+    for i in range(10):
+        try:
+            s = r['inverters'][i]['limit_absolute']  # Ist DTU erreichbar?
+            old_limit.append(s)
+            #rec_old_limit = True
+        except:
+            print(f"Read {len(old_limit)} Inverter Limits ")
+            break
+    old_limit_all = sum(old_limit)  # sum all limits
+    print(f"Read {old_limit} Inverter Limits ")
 
     reachable = r['inverters'][0]['reachable']  # Ist DTU erreichbar?
     producing = int(r['inverters'][0]['producing'])  # Produziert der Wechselrichter etwas?
@@ -91,23 +94,29 @@ def read_maxpower():
         # max_power[i] = r[serials[i]]['max_power']
         max_power.append(r[serials[i]]['max_power'])
         rec_max_power = True
+    logging.info(f'Read {len(max_power)} Max Power at start with: {max_power}')
 
 def read_efficency():
-    global efficency, serials, power_each, power
+    global efficency, serials, power_each, power, factor_efficency
     efficency = []
     for i in range(len(serials)):
         r = requests.get(url=f'http://{dtu_ip}/api/livedata/status?inv={serials[i]}').json() # http://192.168.178.203/api/livedata/status?inv=1164a00a99df
         e = [inv['AC']['0']['Power']['v'] for inv in r["inverters"]]
-        ee = e[0] # list to string
+        power_each = e[0] # list to string
+        #print(power_each)
         #power_each.append(ee)
         #power = 500
         #ee = 100
-        if power == 0 or ee == 0:
+        if power == 0 or power_each == 0:
             efficency = [0.25, 0.25, 0.25, 0.25] # identical if reading not possible or 1 inverter = 0W
         else:
-            eff = ee / power
+            eff = power_each / power
             efficency.append(eff)
-    print(f"current Efficency : {efficency}")
+    for i in range(len(serials)):
+        factor_efficency.append(efficency[i] * setpoint_factor[i])
+    print(f"efficency : {efficency}")
+    print(f"setpoint_factor : {setpoint_factor}")
+    #print(f"factor_efficency : {factor_efficency}")
 
 
 def inv_factor():
@@ -117,6 +126,7 @@ def inv_factor():
         setpoint_factor.append(max_power[i] / max_power_all)
     rec_setpoint_factor = True
     print(f"setpoint_factor: {setpoint_factor} ")
+    logging.info(f'Read {len(setpoint_factor)} Setpoint Factor at start with: {setpoint_factor}')
 
 
 def read_shelly():
@@ -136,22 +146,22 @@ def read_hichi():
 
 def set_limit():
     global setpoint, efficency
-    print(f'Setze Inverterlimit von {round(altes_limit, 1)} W auf {round(setpoint, 1)} W... ')
-    logging.info(f'Setze Inverterlimit von {round(altes_limit, 1)} W auf {round(setpoint, 1)} W... ')
+    print(f'Setze Inverterlimit von {round(old_limit_all, 1)} W auf {round(setpoint, 1)} W... ')
+    logging.info(f'Setze Inverterlimit von {round(old_limit_all, 1)} W auf {round(setpoint, 1)} W... ')
     for i in range(len(serials)):
-        print(f"setpoint_all: {setpoint} setpoint_each: {setpoint * efficency[i]}")
-        logging.debug(f"setpoint_all: {setpoint} setpoint_each: {setpoint * efficency[i]}")
+        print(f"setpoint_all: {setpoint} setpoint_each: {setpoint * setpoint_factor[i]}")
+        logging.debug(f"setpoint_all: {setpoint} setpoint_each: {setpoint * setpoint_factor[i]}")
     try:
         for i in range(len(serials)):
             r = requests.post(
                 url=f'http://{dtu_ip}/api/limit/config',
-                data=f'data={{"serial":"{serials[i]}", "limit_type":0, "limit_value":{setpoint * efficency[i]}}}',
+                data=f'data={{"serial":"{serials[i]}", "limit_type":0, "limit_value":{setpoint * setpoint_factor[i]}}}',
                 auth=HTTPBasicAuth(dtu_nutzer, dtu_passwort),
                 headers={'Content-Type': 'application/x-www-form-urlencoded'}
             )
             #print(r)
             print(f'Konfiguration gesendet ({r.json()["type"]})')
-        # print(f"gesendet{setpoint * setpoint_factor[i]}:")
+            print(f"gesendet{setpoint * setpoint_factor[i]}:")
     except Exception as e:
         print(f'Fehler beim Senden der Konfiguration: \n {e}')
         logging.error(f'Fehler beim Senden der Konfiguration: \n {e}')
@@ -166,7 +176,7 @@ if __name__ == '__main__':
                 read_maxpower()
             read_shelly()
             #read_hichi()
-            if rec_setpoint_factor == False:
+            if rec_setpoint_factor == False and max_power_all != 0:
                 inv_factor()
             read_efficency()
         except Exception as e:
@@ -177,10 +187,6 @@ if __name__ == '__main__':
         #grid_sum = -1000
         ##altes_limit = 3500 #3500W = kein Limit // 0W = voll Limit
         #power = 2000
-        #pv1 = 500
-        #pv2 = 500
-        #pv3 = 500
-        #pv4 = 500
         ##pv_all = []
         #pv_all.append(pv1)
         #pv_all.append(pv2)
@@ -191,17 +197,17 @@ if __name__ == '__main__':
 
         # Werte setzen
         print(f"Seriennummern: {serials} mit max_power: {max_power} ")
-        print(
-            f'\nBezug: {round(grid_sum, 1)} W, Produktion: {round(power, 1)} W, altes_Limit: {round(old_limit_all, 1)} W')
+        print(f'\nBezug: {round(grid_sum, 1)} W, Produktion: {round(power, 1)} W, altes_Limit: {round(old_limit_all, 1)} W')
         logging.info(f'Bezug: {round(grid_sum, 1)} W,\t Produktion: {round(power, 1)} W,\t altes_Limit: {round(old_limit_all, 1)} W')
 
 
         if len(max_power) & len(serials) == 4:  # ATTENTION HARDCODED 4 INVERTERS!
-            if reachable:
+            if reachable and max_power_all != 0:
 
                 # Export
                 if grid_sum < offset_grid:
-                    setpoint = (grid_sum + power) - offset_grid  # *-1
+                    #setpoint = (grid_sum + power) - offset_grid  # *-1
+                    setpoint = (grid_sum + power) - offset_grid# deleted offset_grid
 
                     #  upper Limit
                     if setpoint > max_power_all:
@@ -216,7 +222,8 @@ if __name__ == '__main__':
                         set_limit()
 
                 # no Export
-                if grid_sum >= offset_grid:
+                #if grid_sum >= offset_grid:
+                if grid_sum >= 0: #hysterese zwischen 0 -> 50 (offset)
                     setpoint = max_power_all
                     print(f'no export -> no limit: {setpoint} W')
 
@@ -228,8 +235,8 @@ if __name__ == '__main__':
                         set_limit()
 
             else:
-                print("not reachable")
-                logging.error("not reachable")
+                print(f"not reachable: {reachable} or max_power_all = 0 : {max_power_all}")
+                logging.error(f"not reachable: {reachable} or max_power_all = 0 : {max_power_all} ")
         else:
             print(f"Len max_power: {len(max_power)} or serials incorrect: {len(serials)}")
 
