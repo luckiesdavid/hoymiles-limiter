@@ -5,6 +5,19 @@ import logging
 from datetime import datetime, timedelta
 import os
 
+###
+dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
+dtu_nutzer = 'xxx'  # OpenDTU Nutzername
+dtu_passwort = 'xxx'  # OpenDTU Passwort
+count_inv = 4  # how many inverters in OpenDTU? (for safety reasons)
+
+shelly_ip = '192.168.178.93'  # IP Adresse von Shelly 3EM
+hichi_ip = '10.0.1.130'
+
+minimum_wr = 300  # Minimale Ausgabe des Wechselrichters
+offset_grid = -100
+###
+
 serials = []
 rec_serials = False
 max_power = []
@@ -17,16 +30,6 @@ rec_old_limit = False
 power_each = []
 efficency = []
 factor_efficency = []
-# maximum_wr = 3500  # Maximale Ausgabe des Wechselrichters
-minimum_wr = 300  # Minimale Ausgabe des Wechselrichters
-offset_grid = -100
-
-dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
-dtu_nutzer = 'xxx'  # OpenDTU Nutzername
-dtu_passwort = 'xxx'  # OpenDTU Passwort
-
-shelly_ip = '192.168.178.93'  # IP Adresse von Shelly 3EM
-hichi_ip = '10.0.1.130'
 
 grid_sum = None
 power = None
@@ -187,12 +190,6 @@ if __name__ == '__main__':
         #grid_sum = -1000
         ##altes_limit = 3500 #3500W = kein Limit // 0W = voll Limit
         #power = 2000
-        ##pv_all = []
-        #pv_all.append(pv1)
-        #pv_all.append(pv2)
-        #pv_all.append(pv3)
-        #pv_all.append(pv4)
-        #print(pv_all)
 
 
         # Werte setzen
@@ -201,7 +198,7 @@ if __name__ == '__main__':
         logging.info(f'Bezug: {round(grid_sum, 1)} W,\t Produktion: {round(power, 1)} W,\t altes_Limit: {round(old_limit_all, 1)} W')
 
 
-        if len(max_power) & len(serials) == 4:  # ATTENTION HARDCODED 4 INVERTERS!
+        if len(max_power) & len(serials) == count_inv:
             if reachable and max_power_all != 0:
 
                 # Export
@@ -223,14 +220,13 @@ if __name__ == '__main__':
 
                 # no Export
                 #if grid_sum >= offset_grid:
-                if grid_sum >= 0: #hysterese zwischen 0 -> 50 (offset)
+                if grid_sum >= 0: #hysterese zwischen 0 -> (offset)
                     setpoint = max_power_all
                     print(f'no export -> no limit: {setpoint} W')
-
                     # old limit = new limit
                     if setpoint == old_limit_all:
                         print("Limits identical - not sending Limit")
-                    # send limit
+                    # send full limit
                     if setpoint != old_limit_all:
                         set_limit()
 
