@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 import logging
 from datetime import datetime, timedelta
 import os
+from pv_limiter_mqtt import send_mqtt
 
 ###
 dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
@@ -13,6 +14,7 @@ count_inv = 4  # how many inverters in OpenDTU? (for safety reasons)
 
 shelly_ip = '192.168.178.93'  # IP Adresse von Shelly 3EM
 hichi_ip = '10.0.1.130'
+mqtt = False  # Enable or Disable MQTT
 
 minimum_wr = 300  # Minimale Ausgabe des Wechselrichters
 offset_grid = -100
@@ -235,6 +237,21 @@ if __name__ == '__main__':
                 logging.error(f"not reachable: {reachable} or max_power_all = 0 : {max_power_all} ")
         else:
             print(f"Len max_power: {len(max_power)} or serials incorrect: {len(serials)}")
+
+
+        # MQTT
+        if mqtt:
+            topic = "pv_limiter_py/"
+            payload = {
+                "grid": grid_sum,
+                "pv": power,
+                "old_limit": old_limit_all,
+                "setpoint": setpoint,
+                "offset": offset_grid
+            }
+            # MQTT-Senden-Funktion aufrufen
+            send_mqtt(topic, payload)
+
 
         sys.stdout.flush()  # write out cached messages to stdout
         time.sleep(20)  # wait
