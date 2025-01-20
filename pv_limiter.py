@@ -5,19 +5,23 @@ import logging
 from datetime import datetime, timedelta
 import os
 from pv_limiter_mqtt import send_mqtt
+import configparser
 
-###
-dtu_ip = '192.168.178.203'  # IP-Adresse von OpenDTU
-dtu_nutzer = 'xxx'  # OpenDTU Nutzername
-dtu_passwort = 'xxx'  # OpenDTU Passwort
-count_inv = 4  # how many inverters in OpenDTU? (for safety reasons)
+### Configparser
+config = configparser.ConfigParser()
+config.read('pv_limiter_config.ini.ini')
 
-shelly_ip = '192.168.178.93'  # IP Adresse von Shelly 3EM
-hichi_ip = '10.0.1.130'
-mqtt = False  # Enable or Disable MQTT
+dtu_ip = config.get('OPENDTU', 'dtu_ip')  # IP-Adresse von OpenDTU
+dtu_nutzer = config.get('OPENDTU', 'dtu_nutzer')  # OpenDTU Nutzername
+dtu_passwort = config.get('OPENDTU', 'dtu_passwort')  # OpenDTU Passwort
+count_inv = config.getint('OPENDTU', 'count_inv')  # how many inverters in OpenDTU? (for safety reasons)
 
-minimum_wr = 300  # Minimale Ausgabe des Wechselrichters
-offset_grid = -100
+shelly_ip = config.get('SHELLY', 'shelly_ip')  # IP Adresse von Shelly 3EM
+hichi_ip = config.get('HICHI', 'hichi_ip')
+mqtt = config.get('MQTT', 'mqtt')  # Enable or Disable MQTT
+
+minimum_wr = config.get('INVERTER', 'minimum_wr')  # Minimale Ausgabe des Wechselrichters
+offset_grid = config.get('INVERTER', 'offset_grid')
 ###
 
 serials = []
