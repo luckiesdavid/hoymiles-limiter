@@ -94,11 +94,13 @@ def read_opendtu():
 def read_maxpower():
     global max_power, rec_max_power
     r = requests.get(url=f'http://{dtu_ip}/api/limit/status').json()
+    max_power = []  # set back
     for i in range(len(serials)):
         # print(max_power)
         # max_power[i] = r[serials[i]]['max_power']
         max_power.append(r[serials[i]]['max_power'])
-        rec_max_power = True
+        if max_power[0] < 0:  # else request again
+            rec_max_power = True
     logging.info(f'Read {len(max_power)} Max Power at start with: {max_power}')
 
 def read_efficency():
@@ -224,6 +226,7 @@ if __name__ == '__main__':
                 #if grid_sum >= offset_grid:
                 if grid_sum >= 0: #hysterese zwischen 0 -> (offset)
                     setpoint = max_power_all
+                    #setpoint = (old_limit_all + 100) # slowly open limit
                     print(f'no export -> no limit: {setpoint} W')
                     # old limit = new limit
                     if setpoint == old_limit_all:
