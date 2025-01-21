@@ -8,7 +8,7 @@ config.read('pv_limiter_config.ini')
 
 # MQTT-Broker-Konfiguration
 BROKER_ADDRESS = config.get('MQTT', 'broker')  # IP-Adresse des Home Assistant MQTT-Brokers
-BROKER_PORT = config.get('MQTT', 'port')                # Standard-MQTT-Port
+BROKER_PORT = config.getint('MQTT', 'port')                # Standard-MQTT-Port
 USERNAME = config.get('MQTT', 'user')        # Dein MQTT-Benutzername (falls erforderlich)
 PASSWORD = config.get('MQTT', 'pw')        # Dein MQTT-Passwort (falls erforderlich)
 
