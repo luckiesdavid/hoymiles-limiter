@@ -248,16 +248,19 @@ if __name__ == '__main__':
 
         # MQTT
         if mqtt:
-            topic = "pv_limiter_py/"
-            payload = {
-                "grid": grid_sum,
-                "power": power,
-                "old_limit": old_limit_all,
-                "setpoint": setpoint,
-                "offset": offset_grid
-            }
-            # MQTT-Senden-Funktion aufrufen
-            send_mqtt(topic, payload)
+            try:
+                topic = "pv_limiter_py/"
+                payload = {
+                    "grid": grid_sum,
+                    "power": power,
+                    "old_limit": old_limit_all,
+                    "setpoint": setpoint,
+                    "offset": offset_grid
+                }
+                # MQTT-Senden-Funktion aufrufen
+                send_mqtt(topic, payload)
+            except Exception as e:
+                print(f'MQTT Failure: {e}')
 
 
         sys.stdout.flush()  # write out cached messages to stdout

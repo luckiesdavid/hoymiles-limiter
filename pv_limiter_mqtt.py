@@ -1,11 +1,16 @@
 import paho.mqtt.client as mqtt
 import json
+import configparser
+
+### Configparser
+config = configparser.ConfigParser()
+config.read('pv_limiter_config.ini')
 
 # MQTT-Broker-Konfiguration
-BROKER_ADDRESS = "xxx"  # IP-Adresse des Home Assistant MQTT-Brokers
-BROKER_PORT = 1883                # Standard-MQTT-Port
-USERNAME = "xxx"        # Dein MQTT-Benutzername (falls erforderlich)
-PASSWORD = "xxx"        # Dein MQTT-Passwort (falls erforderlich)
+BROKER_ADDRESS = config.get('MQTT', 'broker')  # IP-Adresse des Home Assistant MQTT-Brokers
+BROKER_PORT = config.get('MQTT', 'port')                # Standard-MQTT-Port
+USERNAME = config.get('MQTT', 'user')        # Dein MQTT-Benutzername (falls erforderlich)
+PASSWORD = config.get('MQTT', 'pw')        # Dein MQTT-Passwort (falls erforderlich)
 
 # Zu sendende Variable
 def send_mqtt(topic, payload_dict):
