@@ -103,7 +103,7 @@ def read_maxpower():
         # print(max_power)
         # max_power[i] = r[serials[i]]['max_power']
         max_power.append(r[serials[i]]['max_power'])
-        if max_power[0] < 0:  # else request again
+        if max_power[0] > 0:  # else request again
             rec_max_power = True
     logging.info(f'Read {len(max_power)} Max Power at start with: {max_power}')
 
