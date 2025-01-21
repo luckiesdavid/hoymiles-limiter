@@ -251,7 +251,7 @@ if __name__ == '__main__':
             topic = "pv_limiter_py/"
             payload = {
                 "grid": grid_sum,
-                "pv": power,
+                "power": power,
                 "old_limit": old_limit_all,
                 "setpoint": setpoint,
                 "offset": offset_grid
