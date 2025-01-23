@@ -14,14 +14,14 @@ config.read('pv_limiter_config.ini')
 dtu_ip = config.get('OPENDTU', 'dtu_ip')  # IP-Adresse von OpenDTU
 dtu_nutzer = config.get('OPENDTU', 'dtu_nutzer')  # OpenDTU Nutzername
 dtu_passwort = config.get('OPENDTU', 'dtu_passwort')  # OpenDTU Passwort
-count_inv = config.get('OPENDTU', 'count_inv')  # how many inverters in OpenDTU? (for safety reasons)
+count_inv = config.getint('OPENDTU', 'count_inv')  # how many inverters in OpenDTU? (for safety reasons)
 
 shelly_ip = config.get('SHELLY', 'shelly_ip')  # IP Adresse von Shelly 3EM
 hichi_ip = config.get('HICHI', 'hichi_ip')
 mqtt = config.getboolean('MQTT', 'mqtt')  # Enable or Disable MQTT
 
-minimum_wr = config.get('INVERTER', 'minimum_wr')  # Minimale Ausgabe des Wechselrichters
-offset_grid = config.get('INVERTER', 'offset_grid')
+minimum_wr = config.getint('INVERTER', 'minimum_wr')  # Minimale Ausgabe des Wechselrichters
+offset_grid = config.getint('INVERTER', 'offset_grid')
 ###
 
 serials = []
@@ -194,10 +194,10 @@ if __name__ == '__main__':
             print(f'Fehler beim Abrufen der Daten {e}')
 
         ###### Simulation ######
-        #reachable = True
-        #grid_sum = -1000
-        ##altes_limit = 3500 #3500W = kein Limit // 0W = voll Limit
-        #power = 2000
+        reachable = True
+        grid_sum = -1000
+        altes_limit = 3500 #3500W = kein Limit // 0W = voll Limit
+        power = 2000
 
 
         # Werte setzen
