@@ -6,12 +6,13 @@ Dies ist ein Python-Skript, das den aktuellen Hausverbrauch aus einem Shelly 3EM
 inkl. MQTT Support inkl. Homeassistant .yaml
 
 ## Install
-- clone repo
+- git clone https://github.com/luckiesdavid/hoymiles-limiter/
 - pip install -r requirements.txt
-- pv_limiter.service -> /etc/systemd/system/
+- cp pv_limiter.service /etc/systemd/system/
 - sudo systemctl daemon-reload
 - sudo systemctl enable pv_limiter.service
 - sudo systemctl start pv_limiter.service
+- sudo systemctl status pv_limiter.service
 
 
 ![diagramm](media/diagramm.jpg)
