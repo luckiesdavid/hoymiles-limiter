@@ -244,6 +244,7 @@ if __name__ == '__main__':
                 logging.error(f"not reachable: {reachable} or max_power_all = 0 : {max_power_all} ")
         else:
             print(f"Len max_power: {len(max_power)} or serials incorrect: {len(serials)}")
+            logging.error(f"Len max_power: {len(max_power)} or serials incorrect: {len(serials)}")
 
 
         # MQTT
