@@ -7,7 +7,7 @@ inkl. MQTT Support inkl. Homeassistant .yaml
 
 ## Install
 - clone repo
-- install dependencies
+- pip install -r requirements.txt
 - pv_limiter.service -> /etc/systemd/system/
 - sudo systemctl daemon-reload
 - sudo systemctl enable pv_limiter.service
